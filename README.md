@@ -18,23 +18,31 @@ This README file provides an overview of the replications materials for the arti
 
 - `clean_survey_data.r`: this code takes the raw survey data and clean the data for the conjoint analysis. 
 
-- `network_models.r`: this code produces the network measure of contextual victimization. The output of this code is used in the `analysis_main_paper.r` code
+- `network_models.r`: this code produces the network measure of contextual victimization. The output of this code is used in the `analysis_main_paper.r` code. Result from appendix A are also generated from this code. 
 
 - `analysis_main_paper.r`: this code generates all the figures presented in the paper. 
 
 - `analysis_sif_survey.r`: this code generates the figures and tables presented in the supplemental analysis from appendix B to B
 
-- `analysis_sif_netwrork_models.r`: this code generates figures and tables from appendix A based on the network model results.
 
 - `utils.R`: this code has a set of functions I use to facilitate the analysis. 
 
 
 ## Data
 
+Thi repo contains three data files
+
+- `raw_survey_data.Rdata`: contains the raw survey data used in the paper
+
+- `processed_survey_dataa.rds`: contains the processed survey data generated from the code `clean_survey_data.r`
+
+- `network_results.Rdata`: contains the results of the network model for victimization generated from the code `network_models.r`.
+
+The codebook for these three data sources is available [here]("https://github.com/TiagoVentura/law_and_order_mexico_CPS/blob/main/codebook.md")
 
 ## Ackowledgments
 
-This research is part of the \textit{Inter-American Development Bank} project: ``Transparency, trust, and Social Media'', 1300600-01-PEC. PI: Ernesto Calvo, 2019-2020. We thank Elizabeth Zechmeister, Noam Lupu, and Maita Schade from LAPOP, who coordinated the probabilistic selection of respondents from a Netquest panel of Mexican voters. We received invaluable feedback from the members of the interdisciplinary Lab for Computational Social Science (iLCSS-UMD) at University of Maryland, College Park, as well as important suggestions from Ernesto Calvo, Isabella Alca\~{n}iz, Ariel White, Luc\'{i}a Tiscornia, Gustavo Flores-Mac\'{i}as, and Giancarlo Visconti.
+This research is part of the \textit{Inter-American Development Bank} project: ``Transparency, trust, and Social Media'', 1300600-01-PEC. PI: Ernesto Calvo, 2019-2020. We thank Elizabeth Zechmeister, Noam Lupu, and Maita Schade from LAPOP, who coordinated the probabilistic selection of respondents from a Netquest panel of Mexican voters. We received invaluable feedback from the members of the interdisciplinary Lab for Computational Social Science (iLCSS-UMD) at University of Maryland, College Park, as well as important suggestions from Ernesto Calvo, Isabella Alcañiz, Ariel White, Lucía Tiscornia, Gustavo Flores-Macías, and Giancarlo Visconti.
 
 
 ## Session Info
