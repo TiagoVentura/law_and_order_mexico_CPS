@@ -38,7 +38,7 @@ Thi repo contains three data files
 
 - `network_results.Rdata`: contains the results of the network model for victimization generated from the code `network_models.r`.
 
-The codebook for these three data sources is available [here]("https://github.com/TiagoVentura/law_and_order_mexico_CPS/blob/main/codebook.md")
+The codebook for these three data sources is available [here](https://github.com/TiagoVentura/law_and_order_mexico_CPS/blob/main/codebook.md)
 
 ## Ackowledgments
 
