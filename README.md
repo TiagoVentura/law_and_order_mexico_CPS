@@ -18,12 +18,13 @@ This README file provides an overview of the replications materials for the arti
 
 - `clean_survey_data.r`: this code takes the raw survey data and clean the data for the conjoint analysis. 
 
-- `network_models.r`: this code produces the network measure of contextual victimization. The output of this code is used in the `analysis_main_paper.r` code. In this code, we also replicate results from appendix A.
+- `network_models.r`: this code produces the network measure of contextual victimization. The output of this code is used in the `analysis_main_paper.r` code
 
 - `analysis_main_paper.r`: this code generates all the figures presented in the paper. 
 
 - `analysis_sif_survey.r`: this code generates the figures and tables presented in the supplemental analysis from appendix B to B
 
+- `analysis_sif_netwrork_models.r`: this code generates figures and tables from appendix A based on the network model results.
 
 - `utils.R`: this code has a set of functions I use to facilitate the analysis. 
 

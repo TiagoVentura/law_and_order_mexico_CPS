@@ -375,8 +375,7 @@ ggplot(data=res_int_r %>% filter(features=="Security Proposal"),
         strip.text = element_text(size=13))
 
 
-
-ggsave(filename=here("output", "fig3a.png") ,
+ggsave(filename=here("output", "fig3b.png") ,
        width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 # sesssion
