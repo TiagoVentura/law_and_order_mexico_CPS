@@ -15,17 +15,17 @@ This README file provides an overview of the replications materials for the arti
 
 ## Codes
 
-Figures main paper
 
-- AMCE.png
+- `clean_survey_data.r`: this code takes the raw survey data and clean the data for the conjoint analysis. 
 
-- conjoint_crime_victim.png
+- `network_models.r`: this code produces the network measure of contextual victimization. The output of this code is used in the `analysis_main_paper.r` code. In this code, we also replicate results from appendix A.
 
-- conjoint_crime_victim_occup.png
+- `analysis_main_paper.r`: this code generates all the figures presented in the paper. 
 
-- party_acie_proposal.png
+- `analysis_sif_survey.r`: this code generates the figures and tables presented in the supplemental analysis from appendix B to B
 
-- occup_acie_proposal.png
+
+- `utils.R`: this code has a set of functions I use to facilitate the analysis. 
 
 
 ## Data
@@ -40,22 +40,22 @@ This research is part of the \textit{Inter-American Development Bank} project: `
 
     sessionInfo()
 
-    ## R version 4.1.2 (2021-11-01)
-    ## Platform: x86_64-apple-darwin17.0 (64-bit)
-    ## Running under: macOS Big Sur 10.16
-    ## 
+    ## R version 4.0.3 (2020-10-10)
+    ## Platform: x86_64-pc-linux-gnu (64-bit)
+    ## Running under: Ubuntu 20.04.2 LTS
+    ##
     ## Matrix products: default
-    ## BLAS:   /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRblas.0.dylib
-    ## LAPACK: /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRlapack.dylib
-    ## 
+    ## BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.9.0
+    ## LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.9.0
+    
     ## locale:
-    ## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
-    ## 
+    ##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C               LC_TIME=en_US.UTF-8       
+    ##  [4] LC_COLLATE=en_US.UTF-8     LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+    ##  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                  LC_ADDRESS=C              
+    ##  [10] LC_TELEPHONE=C             LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+    
     ## attached base packages:
     ## [1] stats     graphics  grDevices utils     datasets  methods   base     
-    ## 
+    
     ## loaded via a namespace (and not attached):
-    ##  [1] compiler_4.1.2  magrittr_2.0.3  fastmap_1.1.0   cli_3.4.1      
-    ##  [5] tools_4.1.2     htmltools_0.5.3 rstudioapi_0.13 yaml_2.3.5     
-    ##  [9] stringi_1.7.8   rmarkdown_2.14  knitr_1.39      stringr_1.4.0  
-    ## [13] xfun_0.31       digest_0.6.29   rlang_1.0.6     evaluate_0.15
+    ## [1] compiler_4.0.3  fastmap_1.1.0   cli_3.2.0       htmltools_0.5.2 tools_4.0.3     yaml_2.3.5   ## [7] rmarkdown_2.10  knitr_1.37      xfun_0.30       digest_0.6.29   rlang_1.0.2     evaluate_0.15  
