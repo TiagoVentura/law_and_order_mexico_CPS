@@ -31,7 +31,37 @@ conflict_prefer("select", "dplyr")
 conjoint_data =read_rds(here("data", "processed_survey_data.rds"))
 
 # Modeling ----------------------------------------------------------------
+
+
+# Gender
+levels_gender <- levels(conjoint_data$feat_gender)
+levels_gender <- list("Male"= levels_gender[2], 
+                      "Female" = levels_gender[1])
+
+# Party
+
+levels_party <- levels(conjoint_data$feat_political_party)
+levels_party <- list("PRI"="PRI", "MORENA"="Morena", "PAN"="PAN", 
+                     "Independents"="Independiente")
+
+# Occupation
+levels_occup <- levels(conjoint_data$feat_occupation)
+levels_occup <- list("Leader Autodefensas" = levels_occup[2], 
+                     "Chief Local Police" = levels_occup[3], 
+                     "Human-Rights Activist"=levels_occup[4], 
+                     "Owner Private Security Firm"=levels_occup[5], 
+                     "Public Employee"=levels_occup[1])
+
+# Proposal
+levels_sec <- levels(conjoint_data$feat_security_proposal)
+levels_sec <- list("Education to Youth"= levels_sec[2], 
+                   "Better Police/Security Cameras"= levels_sec[3],
+                   "Death Penalty"= levels_sec[4],
+                   "Police Militarization"= levels_sec[5], 
+                   "Victims Oriented Policies"= levels_sec[1])
+
 features = c("political_party", "gender", "occupation", "security_proposal")
+
 references <- c(levels(conjoint_data$feat_political_party)[1],
                 levels(conjoint_data$feat_gender)[1],
                 levels(conjoint_data$feat_occupation)[1], 

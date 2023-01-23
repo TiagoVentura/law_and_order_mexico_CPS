@@ -46,3 +46,15 @@ Below we describe the main variables used in the conjoint analysis.
 
 - negative_partisanship: survey measure for negative partisanship
 - positive_partisanship: survey measure for positive partisanship
+- income: subjective survey measure for personal income
+- gender: survey measure for respondents' gender
+- work: survey response for employent situation
+- age: survey response for respondents' age
+- education: survey response for respondents' educational levels
+- crime_victimization: self-reported crime victimizatin
+- police victimization: self-reported police victimization
+- trust_police: survey measure for trust in local police
+- issue_security: issue importance measure for security as a personal concern
+- fear_x: battery of questions for fear of crime
+- po_criminal_rights: survey measure for agreement with the restrictions of rights for people who committed crimes. 
+
