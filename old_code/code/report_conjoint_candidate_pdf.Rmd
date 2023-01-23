@@ -1,0 +1,703 @@
+---
+title: "Results: Candidate Choice Conjoint"
+author: "Tiago Ventura"
+geometry: margin=1in
+linestretch: 2
+fontfamily: mathpazo
+fontsize: 12pt
+utput: 
+  pdf_document:
+    citation_package: natbib
+    keep_tex: true
+    fig_caption: true
+    latex_engine: xelatex
+    template: my_lecture_note_template.tex
+editor_options: 
+  chunk_output_type: inline
+header-includes: 
+  - \usepackage{booktabs}
+  - \usepackage{amsmath}
+  - \hypersetup{colorlinks,citecolor=blue,filecolor=red,linkcolor=brown,urlcolor=blue}
+  - \usepackage{lmodern}
+  - \usepackage[shadow,roundedcorners,customcolors]{dynblocks}
+  - \usepackage{natbib}
+  - \usepackage[utf8]{inputenc} 
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE,
+                      prompt=FALSE,
+                      tidy=TRUE,
+                      comment=NA,
+                      message=FALSE,
+                      warning=FALSE, 
+                      cache=TRUE, 
+                      tidy.opts=list(width.cutoff=20))
+
+knitr::opts_knit$set(root.dir = "C:/Users/venturat/Dropbox/artigos/ACSV_Trustful_voters")
+
+# Packages ----------------------------------------------------------------
+library(tidyverse)
+library(summarytools)
+library(lubridate)
+library(scales)
+library(conflicted)
+library(rebus)
+library(patchwork)
+library(extrafont)
+library(broom)
+#devtools::install_github("sfirke/janitor")
+#library(janitor)
+conflict_prefer("filter", "dplyr")
+conflict_prefer("select", "dplyr")
+
+```
+
+# Introduction
+
+In this short report, I present the main results for the Conjoint Experiment on Candidate Choice and Security Policies in Mexico. 
+
+# Cleaning and Preparing the data
+
+```{r}
+# Functions ---------------------------------------------------------------
+
+
+# short view
+short_view <- function(data){
+  data %>% slice(1:50) %>% View()
+}
+
+# ggplot theme ------------------------------------------------------------
+#my_font <- "Palatino Linotype"
+my_bkgd <- "white"
+#my_bkgd <- "#f5f5f2"
+pal <- RColorBrewer::brewer.pal(9, "Spectral")
+
+
+my_theme <- theme(text = element_text(color = "#22211d"),
+                  rect = element_rect(fill = my_bkgd),
+                  plot.background = element_rect(fill = my_bkgd, color = NA),
+                  panel.background = element_rect(fill = my_bkgd, color = NA),
+                  panel.border = element_rect(color="black"), 
+                  strip.background = element_rect(color="black", fill="gray85"), 
+                  legend.background = element_rect(fill = my_bkgd, color = NA),
+                  legend.key.size = unit(1, "cm"),
+                  legend.text = element_text(size = 10),
+                  legend.title = element_text(size=10),
+                  plot.title = element_text(size = 14, face = "bold"),
+                  plot.subtitle = element_text(size=12),
+                  axis.title.x = element_text(hjust=1,  size=7),
+                  axis.text.y=element_text(size=10,hjust=0),
+                  plot.margin = margin(1, 1, 1, 1, "cm"))
+
+
+
+
+
+# Download the data -------------------------------------------------------
+
+load("./data/mexico_cleaned2_data.Rdata")
+
+dim(d)
+
+# Check Covariates --------------------------------------------------------
+
+#levels(d$education)
+#class(d$income)
+#levels(d$work)
+#levels(d$age)
+
+# Cleaning the Conjoints --------------------------------------------------
+
+## Putting together the two taks. 
+
+outcomes <- d %>% 
+          select(responseid,conjoint1_outcome, conjoint2_outcome)
+
+outcomes <- outcomes  %>% 
+  pivot_longer(cols = -responseid, 
+               names_to = "var", 
+               values_to = "outcome") %>% 
+  mutate(task= ifelse(var=="conjoint1_outcome", "choice_1", "choice_2"), 
+         candidate= ifelse(outcome=="Candidato A", "cd_1", "cd_2"), 
+         missing_id= ifelse(is.na(outcome)|outcome=="-999", 1, 0), 
+         candidate=ifelse(missing_id==1, "cd_1", candidate)) 
+
+# it doesnt matter, I will exclude the missing
+
+#short_view(outcomes)
+
+# The features ------------------------------------------------------------
+
+### Clean the features
+
+
+### Function to extract the features
+
+features <- d %>% select(responseid, matches("^f_"))
+#View(features)
+
+var_feature_1 <- c("f_1_1", "f_1_1_1", "f_1_2_1", "f_2_1_1", "f_2_2_1")
+var_feature_2 <- c("f_1_2", "f_1_1_2", "f_1_2_2", "f_2_1_2", "f_2_2_2")
+var_feature_3 <- c("f_1_3", "f_1_1_3", "f_1_2_3", "f_2_1_3", "f_2_2_3")
+var_feature_4 <- c("f_1_4", "f_1_1_4", "f_1_2_4", "f_2_1_4", "f_2_2_4")
+
+# Function
+cj_extract_features <- function(data, variables){
+  feature <- data %>% select(responseid,variables)
+  feature %>% pivot_longer(
+    cols = variables[-1],
+    names_to = "var",
+    values_to = "value") %>% 
+    mutate(task=ifelse(str_detect(var, "f_1"),"choice_1", "choice_2"), # extract the task
+           candidate= ifelse(str_detect(var, DGT %R% "_1_" %R% DGT %R% END),"cd_1", "cd_2"))   %>% 
+    rename("features"=variables[1]) 
+}
+
+
+## Extract
+list_features <- list(var_feature_1, var_feature_2, var_feature_3, var_feature_4)
+
+features_long <- map_dfr(list_features, ~ cj_extract_features(d, .x)) %>% 
+  drop_na(features)
+
+features_wider <- features_long %>% select(-var) %>%
+  pivot_wider(
+    names_from = features,  
+    values_from= value) 
+
+
+### Put together with the outcomes
+
+# Invert the merge here. Since I just recorded in the outcome the candidate choosen, 
+# I have to merge by the right, which means preserving the missings from the features data
+# the missings will be the cases no choosen
+
+conjoint_data_to_remove <- left_join(features_wider,outcomes, by=c("responseid", "task"))
+id_to_remove <- conjoint_data_to_remove %>% 
+  filter(missing_id==1)  %>% 
+  select(responseid, task, missing_id) 
+
+# Convert the missings to zero. But first, eliminate the real missings
+
+conjoint_data <- left_join(features_wider,outcomes) %>% 
+  anti_join(id_to_remove, by=c("responseid", "task")) %>%
+  mutate(outcome_num=ifelse(is.na(outcome), 0, 1)) %>%
+  select(-var, -missing_id)
+
+
+#View(conjoint_data)
+
+# Check
+#table(conjoint_data$outcome_num)
+
+# perfect = equal answers
+
+colnames(conjoint_data) <- c("responseid", "task", "candidate", 
+                             "feat_political_party", 
+                             "feat_security_proposal", 
+                             "feat_occupation", 
+                             "feat_gender",
+                             "outcome", "outcome_num")
+
+
+# Get the baselines
+
+# Check Security Policy
+
+library(janitor)
+# conjoint_data %>% tabyl(feat_security_proposal) %>% View()
+# conjoint_data %>% tabyl(feat_occupation) %>% View()
+
+
+
+conjoint_data <- conjoint_data %>% 
+  mutate_at(vars(contains("feat_")), as_factor) %>%
+  mutate(feat_political_party=fct_relevel(feat_political_party, "Independiente"), 
+         feat_gender=fct_relevel(feat_gender, "Mujer"), 
+         feat_security_proposal= fct_relevel(feat_security_proposal, 
+                                             "Creación de un centro de asesoría y atención a víctimas"),
+         feat_occupation= fct_relevel(feat_occupation, "Empleado público"))
+
+
+# Combine -----------------------------------------------------------------
+
+conjoint_data <- left_join(d, conjoint_data)
+
+#conjoint_data %>% tabyl(feat_occupation, outcome_num)
+
+
+# Rename levels -----------------------------------------------------------
+
+# Gender
+levels_gender <- levels(conjoint_data$feat_gender)
+levels_gender <- list("Male"= levels_gender[2], 
+                      "Female" = levels_gender[1])
+
+# Party
+
+levels_party <- levels(conjoint_data$feat_political_party)
+levels_party <- list("PRI"="PRI", "MORENA"="Morena", "PAN"="PAN", 
+                     "Independents"="Independiente")
+
+# Occupation
+levels_occup <- levels(conjoint_data$feat_occupation)
+levels_occup <- list("Leader Autodefensas" = levels_occup[2], 
+                     "Chief Local Police" = levels_occup[3], 
+                     "Human-Rights Activist"=levels_occup[4], 
+                     "Owner Private  Security Firm"=levels_occup[5], 
+                     "Public Employee"=levels_occup[1])
+
+# Proposal
+levels_sec <- levels(conjoint_data$feat_security_proposal)
+levels_sec <- list("Education to Youth"= levels_sec[2], 
+                  "Better Police/Security Cameras"= levels_sec[3],
+                  "Death Penalty"= levels_sec[4],
+                  "Police Militarization"= levels_sec[5], 
+                  "Victims Oriented Policies"= levels_sec[1])
+
+conjoint_data <- conjoint_data %>% 
+                  mutate(feat_gender=fct_recode(feat_gender, !!!levels_gender), 
+                         feat_political_party=fct_recode(feat_political_party, !!!levels_party), 
+                         feat_occupation=fct_recode(feat_occupation, !!!levels_occup), 
+                         feat_security_proposal=fct_recode(feat_security_proposal,
+                                                           !!!levels_sec))
+
+```
+
+
+# Modelling Function
+
+
+```{r}
+
+# Modeling ----------------------------------------------------------------
+features = c("political_party", "gender", "occupation", "security_proposal")
+references <- c(levels(conjoint_data$feat_political_party)[1],
+                levels(conjoint_data$feat_gender)[1],
+                levels(conjoint_data$feat_occupation)[1], 
+                levels(conjoint_data$feat_security_proposal)[1])
+
+list_terms <- c("Political Party", paste0("    ", names(levels_party)), " ",
+                   "Gender", paste0("    ", names(levels_gender)),"  ", 
+                   "Occupation", paste0("    ", names(levels_occup)), "   ",
+                   "Security Proposal", paste0("    ", names(levels_sec)), "    ")
+
+tidy_conjoint_model <- function(model, subsample, features=features,
+                                references=references, list_terms){
+  
+  # to make it more general, it is just to change the  4 for the number of features
+  model %>% 
+    tidy(.) %>% 
+    mutate(lb=estimate - 1.96*std.error, 
+           up= estimate + 1.96*std.error, 
+           lb90=estimate - 1.64*std.error, 
+           up90= estimate + 1.64*std.error) %>% 
+    filter(!(term %in% c("(Intercept)"))) %>% 
+    mutate(term=str_remove_all(term, paste0("feat_", features, collapse = "|")),
+           term=str_replace_all(term, "_", " "),
+           term=as.factor(term), 
+           term=str_c("    ", term)) %>%
+    bind_rows(data_frame(term=c(str_to_title(str_replace_all(features, "_", " ")), 
+                                " ", "  ", "   ", "    ",
+                                paste0("    ", references)), 
+                         estimate=c(rep(NA, 4), rep(NA, 4), rep(0,4)),  
+                         std.error=c(rep(NA, 4), rep(NA, 4), rep(0,4)),  
+                         statistic=c(rep(NA, 4), rep(NA, 4), rep(0,4)),  
+                         p.value=c(rep(NA, 4), rep(NA, 4), rep(0,4)), 
+                         lb=c(rep(NA, 4), rep(NA, 4), rep(0,4)),  
+                         up=c(rep(NA, 4), rep(NA, 4), rep(0,4)), 
+                         lb90=c(rep(NA, 4), rep(NA, 4), rep(0,4)),  
+                         up90=c(rep(NA, 4), rep(NA, 4), rep(0,4)))) %>% 
+    mutate(subsample=subsample, 
+           term=fct_relevel(term, list_terms), 
+           term=fct_rev(term))
+  }
+
+```
+
+
+# Average Marginal Component Effects
+
+```{r}
+# ATE
+
+model <- lm(outcome_num~ feat_political_party + feat_gender + 
+     feat_security_proposal + feat_occupation, data=conjoint_data)
+
+res <- tidy_conjoint_model(model=model, subsample="all", features = features,
+                           references=references, list_terms = list_terms)
+
+ggplot(res, aes(y=estimate, x=term, 
+                ymin=up, ymax=lb)) +
+  geom_pointrange(size=.5, fill="black", shape=21, color="grey5",
+                  position=position_dodge(width = .6), alpha=.8) +
+  geom_pointrange(aes(ymin=lb90, y=estimate, ymax=up90), shape=21, 
+                  size=1, color="grey5") +
+  labs(x="", y="AMCE", 
+       title = "Candidate Choice Conjoint Estimates") +
+  geom_hline(yintercept = 0, linetype="dashed", color="darkred") + 
+  scale_color_brewer(palette="Set1") +
+  coord_flip() + 
+  theme_bw()+ my_theme
+
+```
+
+
+## Interaction Effects: Party
+
+```{r}
+conjoint_data <- conjoint_data %>%
+                    mutate(vote=ifelse(vote_morena=="On", "MORENA Voters", 
+                                  ifelse(vote_pri=="On", "PRI Voters", 
+                                    ifelse(vote_pan=="On", "PAN Voters", 
+                                      "Independents"))))
+
+# By parties
+
+res_parties <- conjoint_data %>% 
+                  group_by(vote) %>%
+                  nest() %>%
+                  mutate(model=map2(data, vote, 
+                                   ~ lm(outcome_num~ feat_political_party + feat_gender + 
+                                          feat_security_proposal + feat_occupation, 
+                                          data=.x) %>%
+                                     tidy_conjoint_model(model=., subsample=.y, 
+                                                         features = features,
+                                     references=references, list_terms = list_terms))) %>% 
+                  unnest(model)
+
+ggplot(res_parties, aes(y=estimate, x=term, 
+                ymin=up, ymax=lb)) +
+  geom_pointrange(size=.5, fill="black", shape=21, color="grey5",
+                  position=position_dodge(width = .6), alpha=.8) +
+  geom_pointrange(aes(ymin=lb90, y=estimate, ymax=up90), shape=21, 
+                  size=1, color="grey5") +
+  labs(x="", y="AMCE", 
+       title = "Candidate Choice Conjoint Estimates") +
+  geom_hline(yintercept = 0, linetype="dashed", color="darkred") + 
+  scale_color_brewer(palette="Set1") +
+  coord_flip() + 
+  facet_grid(~subsample)+ 
+  theme_bw()+ my_theme
+
+
+```
+
+
+# Interaction Effects: Crime Victimization
+
+```{r}
+# Crime Vitimization ------------------------------------------------------
+
+# list levels
+
+list_vict <- list("Victim"= "Si", 
+                  "Not Victim" = "No")
+
+# Recode
+d_vict <- conjoint_data %>% 
+  mutate_at(vars(crime_victimization, police_victimization), ~
+              ifelse(.x %in% c("-999", "No lo se"), 
+                     NA, .x)) %>%        
+  mutate_at(vars(crime_victimization, police_victimization), ~
+              fct_recode(.x,!!!list_vict))
+
+d_vict %>% 
+  tabyl(crime_victimization, police_victimization)
+
+# Model
+
+res_vict <- d_vict %>% 
+  group_by(crime_victimization) %>% 
+  nest() %>% 
+  drop_na() %>%
+  mutate(model=map2(data, crime_victimization, 
+                    ~ lm(outcome_num~ feat_political_party + feat_gender + 
+                           feat_security_proposal + feat_occupation, 
+                         data=.x) %>%
+                      tidy_conjoint_model(model=., subsample=.y, 
+                                          features = features,
+                                          references=references, list_terms = list_terms))) %>% 
+  unnest(model) %>% select(-data)
+
+
+
+# Remove repeated
+
+res_vict_color <- res_vict %>% ungroup() %>% 
+  mutate(id_remove=ifelse(crime_victimization=="Victim"& (is.na(estimate) | estimate==0.0000), 1, 0),
+         crime_victimization=fct_rev(crime_victimization)) %>%
+  filter(id_remove==0) 
+
+ggplot(res_vict_color, aes(y=estimate, x=term, 
+                        ymin=up, ymax=lb, shape=crime_victimization)) +
+  geom_pointrange(size=.5, fill="black", color="grey5",
+                  position=position_dodge(width = .6), alpha=.8) +
+  labs(x="", y="AMCE", 
+       title = "Candidate Choice Conjoint Estimates") +
+  geom_hline(yintercept = 0, linetype="dashed", color="darkred") + 
+  scale_shape_manual(values=c(22,23), name="Crime Victimization") +
+  coord_flip() + 
+  theme_bw()+ my_theme
+
+```
+
+# Interaction Effects: Police Victimization
+
+```{r}
+
+# Model
+
+res_vict <- d_vict %>% 
+  group_by(police_victimization) %>% 
+  nest() %>% 
+  drop_na() %>%
+  mutate(model=map2(data, police_victimization, 
+                    ~ lm(outcome_num~ feat_political_party + feat_gender + 
+                           feat_security_proposal + feat_occupation, 
+                         data=.x) %>%
+                      tidy_conjoint_model(model=., subsample=.y, 
+                                          features = features,
+                                          references=references, list_terms = list_terms))) %>% 
+  unnest(model) %>% select(-data)
+
+
+
+# Remove repeated
+
+res_vict_color <- res_vict %>% ungroup() %>% 
+  mutate(id_remove=ifelse(police_victimization=="Victim"& (is.na(estimate) | estimate==0.0000), 1, 0)) %>%
+  filter(id_remove==0) 
+
+res_vict_color %>% View()
+
+ggplot(res_vict_color, aes(y=estimate, x=term, 
+                           ymin=up, ymax=lb, shape=police_victimization)) +
+  geom_pointrange(size=.5, fill="black", color="grey5",
+                  position=position_dodge(width = .7), alpha=.8) +
+  labs(x="", y="AMCE", 
+       title = "Candidate Choice Conjoint Estimates") +
+  geom_hline(yintercept = 0, linetype="dashed", color="darkred") + 
+  scale_shape_manual(values=c(22,23), name="Police Victimization") +
+  coord_flip() + 
+  guides(shape = guide_legend(reverse=T)) +
+  theme_bw()+ my_theme
+
+
+```
+
+# Fear of Crime
+
+```{r}
+
+# Fear of Crime -----------------------------------------------------------
+
+
+# list levels
+
+# Recode
+d_fear <- conjoint_data %>% 
+  mutate_at(vars(fear_1, fear_2, fear_3, fear_4), ~ 
+              ifelse(.x %in% c("-999", "No lo se"), 
+                     NA, .x)) %>%
+  mutate_at(vars(fear_1, fear_2, fear_3, fear_4), ~ 
+              fct_relevel(.x, "Muy Seguro", "Seguro", "Poco Seguro"))
+
+# Model
+res_fear <- d_fear %>% 
+  group_by(fear_1) %>% 
+  nest() %>% 
+  drop_na() %>%
+  mutate(model=map2(data, fear_1, 
+                    ~ lm(outcome_num~ feat_political_party + feat_gender + 
+                           feat_security_proposal + feat_occupation, 
+                         data=.x) %>%
+                      tidy_conjoint_model(model=., subsample=.y, 
+                                          features = features,
+                                          references=references, list_terms = list_terms))) %>% 
+  unnest(model) %>% select(-data)
+
+
+
+# # Remove repeated
+# 
+# res_vict_color <- res_vict %>% ungroup() %>% 
+#   mutate(id_remove=ifelse(crime_victimization=="Victim"& (is.na(estimate) | estimate==0.0000), 1, 0),
+#          crime_victimization=fct_rev(crime_victimization)) %>%
+#   filter(id_remove==0) 
+
+
+ggplot(res_fear, aes(y=estimate, x=term, 
+                        ymin=up, ymax=lb)) +
+  geom_pointrange(size=.5, fill="black", shape=21, color="grey5",
+                  position=position_dodge(width = .6), alpha=.8) +
+  geom_pointrange(aes(ymin=lb90, y=estimate, ymax=up90), shape=21, 
+                  size=1, color="grey5") +
+  labs(x="", y="AMCE", 
+       title = "Candidate Choice Conjoint Estimates", 
+       subtitle = "Fear: Caminando solo(a) en una calle oscura") +
+  geom_hline(yintercept = 0, linetype="dashed", color="darkred") + 
+  scale_color_brewer(palette="Set1") +
+  coord_flip() + 
+  facet_grid(~subsample) + 
+  theme_bw()+ my_theme
+
+
+# Fear 2
+
+# Model
+res_fear <- d_fear %>% 
+  group_by(fear_2) %>% 
+  nest() %>% 
+  drop_na() %>%
+  mutate(model=map2(data, fear_2, 
+                    ~ lm(outcome_num~ feat_political_party + feat_gender + 
+                           feat_security_proposal + feat_occupation, 
+                         data=.x) %>%
+                      tidy_conjoint_model(model=., subsample=.y, 
+                                          features = features,
+                                          references=references, list_terms = list_terms))) %>% 
+  unnest(model) %>% select(-data)
+
+
+ggplot(res_fear, aes(y=estimate, x=term, 
+                     ymin=up, ymax=lb)) +
+  geom_pointrange(size=.5, fill="black", shape=21, color="grey5",
+                  position=position_dodge(width = .6), alpha=.8) +
+  geom_pointrange(aes(ymin=lb90, y=estimate, ymax=up90), shape=21, 
+                  size=1, color="grey5") +
+  labs(x="", y="AMCE", 
+       title = "Candidate Choice Conjoint Estimates", 
+       subtitle = "Fear: Conducir en tu ciudad durante la noche") +
+  geom_hline(yintercept = 0, linetype="dashed", color="darkred") + 
+  scale_color_brewer(palette="Set1") +
+  coord_flip() + 
+  facet_grid(~subsample) + 
+  theme_bw()+ my_theme
+
+
+# Fear 3
+
+# Model
+res_fear <- d_fear %>% 
+  group_by(fear_3) %>% 
+  nest() %>% 
+  drop_na() %>%
+  mutate(model=map2(data, fear_3, 
+                    ~ lm(outcome_num~ feat_political_party + feat_gender + 
+                           feat_security_proposal + feat_occupation, 
+                         data=.x) %>%
+                      tidy_conjoint_model(model=., subsample=.y, 
+                                          features = features,
+                                          references=references, list_terms = list_terms))) %>% 
+  unnest(model) %>% select(-data)
+
+
+ggplot(res_fear, aes(y=estimate, x=term, 
+                     ymin=up, ymax=lb)) +
+  geom_pointrange(size=.5, fill="black", shape=21, color="grey5",
+                  position=position_dodge(width = .6), alpha=.8) +
+  geom_pointrange(aes(ymin=lb90, y=estimate, ymax=up90), shape=21, 
+                  size=1, color="grey5") +
+  labs(x="", y="AMCE", 
+       title = "Candidate Choice Conjoint Estimates", 
+       subtitle = "Fear: Quedarse solo en casa") +
+  geom_hline(yintercept = 0, linetype="dashed", color="darkred") + 
+  scale_color_brewer(palette="Set1") +
+  coord_flip() + 
+  facet_grid(~subsample) + 
+  theme_bw()+ my_theme
+
+
+# Fear 4
+
+# Model
+res_fear <- d_fear %>% 
+  group_by(fear_4) %>% 
+  nest() %>% 
+  drop_na() %>%
+  mutate(model=map2(data, fear_4, 
+                    ~ lm(outcome_num~ feat_political_party + feat_gender + 
+                           feat_security_proposal + feat_occupation, 
+                         data=.x) %>%
+                      tidy_conjoint_model(model=., subsample=.y, 
+                                          features = features,
+                                          references=references, list_terms = list_terms))) %>% 
+  unnest(model) %>% select(-data)
+
+
+ggplot(res_fear, aes(y=estimate, x=term, 
+                     ymin=up, ymax=lb)) +
+  geom_pointrange(size=.5, fill="black", shape=21, color="grey5",
+                  position=position_dodge(width = .6), alpha=.8) +
+  geom_pointrange(aes(ymin=lb90, y=estimate, ymax=up90), shape=21, 
+                  size=1, color="grey5") +
+  labs(x="", y="AMCE", 
+       title = "Candidate Choice Conjoint Estimates", 
+       subtitle = "Fear: Al encontrar una patrulla policial en su vecindario") +
+  geom_hline(yintercept = 0, linetype="dashed", color="darkred") + 
+  scale_color_brewer(palette="Set1") +
+  coord_flip() + 
+  facet_grid(~subsample) + 
+  theme_bw()+ my_theme
+
+```
+
+
+# Mano Dura Preferences
+
+```{r}
+# Law and Order -----------------------------------------------------------
+table(conjoint_data$lo_1)
+
+# Recode
+d_lo <- conjoint_data %>% 
+  mutate_at(vars(lo_1, lo_2, lo_3, lo_4, lo_5), ~ 
+              ifelse(.x %in% c("-999", "No lo se"), 
+                     NA, .x)) 
+
+# Model
+res_lo <- d_lo %>% 
+  group_by(lo_2) %>% 
+  nest() %>% 
+  drop_na() %>%
+  mutate(model=map2(data, lo_2, 
+                    ~ lm(outcome_num~ feat_political_party + feat_gender + 
+                           feat_security_proposal + feat_occupation, 
+                         data=.x) %>%
+                      tidy_conjoint_model(model=., subsample=.y, 
+                                          features = features,
+                                          references=references, list_terms = list_terms))) %>% 
+  unnest(model) %>% select(-data)
+
+
+
+# # Remove repeated
+# 
+# res_vict_color <- res_vict %>% ungroup() %>% 
+#   mutate(id_remove=ifelse(crime_victimization=="Victim"& (is.na(estimate) | estimate==0.0000), 1, 0),
+#          crime_victimization=fct_rev(crime_victimization)) %>%
+#   filter(id_remove==0) 
+
+
+ggplot(res_lo, aes(y=estimate, x=term, 
+                     ymin=up, ymax=lb)) +
+  geom_pointrange(size=.5, fill="black", shape=21, color="grey5",
+                  position=position_dodge(width = .6), alpha=.8) +
+  geom_pointrange(aes(ymin=lb90, y=estimate, ymax=up90), shape=21, 
+                  size=1, color="grey5") +
+  labs(x="", y="AMCE", 
+       title = "Candidate Choice Conjoint Estimates", 
+       subtitle="Question: No Hay Mejor Ladron que el Ladron Muerto") +
+  geom_hline(yintercept = 0, linetype="dashed", color="darkred") + 
+  scale_color_brewer(palette="Set1") +
+  coord_flip() + 
+  facet_grid(~subsample)+ 
+  theme_bw()+ my_theme
+
+
+```
+

@@ -1,0 +1,245 @@
+# ------------------------------------------------------------------------------- #
+# Article: Voting for Law and Order in Mexico
+# Authors: Cantu, Ley, Ventura
+# Update: June 15
+# Replicate Ernesto's Models
+# ------------------------------------------------------------------------------- #
+
+library(arm)
+library(foreign)
+library(tidyverse)
+library(here)
+
+data1 = read.dta(here("data","Master ALL VARS -10-9-15-ULTIMA VERSION-stata12.dta")) %>%
+          sample_n(1000)
+
+
+
+
+# sample
+attach(data1)
+n.row= nrow(data1)
+n.cat= ncol(data1[,c(119:143)])
+
+howmany<- stack(data1[,c(119:143)])
+#howmany.ini<-howmany
+howmany$values<-as.integer(howmany[,1])
+#howmany$values[howmany$values>=99]<- NA
+#howmany$values[howmany$values>30]<- 30
+#howmany.ini$values[howmany.ini$values<2]<- NA
+#howmany.ini$values[howmany.ini$values==99]<- 1
+#howmany.ini$values[howmany.ini$values>1]<- NA
+
+#off.values2<- as.data.frame(log(cbind(rep(.0086,n.row),rep(.0053,n.row),rep(.00540,n.row),rep(.0052,n.row),rep(.004756,n.row),rep(.01063,n.row),rep(.0041,n.row),rep(.00337,n.row),rep(.00286,n.row),rep(.01773,n.row),rep(.0076,n.row),rep(.0049,n.row),rep(.018,n.row), rep(.049478004,n.row), rep(.001342105,n.row)))) 
+
+#off.values2<- as.data.frame(cbind(rnorm(n.row,log(.0086),-log(.0086)/20), rnorm(n.row, log(.0053),-log(.0053)/20), rnorm(n.row, log(.00540),-log(.00540)/20), rnorm(n.row, log(.0052),-log(.0052)/20), rnorm(n.row, log(.004756), -log(.004756)/20), rnorm(n.row, log(.01063),-log(.01063)/20), rnorm(n.row, log(.0041),-log(.0041)/20), rnorm(n.row, log(.00337),-log(.00337)/20), rnorm(n.row, log(.00286),-log(.00286)/20), rnorm(n.row, log(.01773),-log(.01773)/20), rnorm(n.row, log(.0076),-log(.0076)/20),rnorm(n.row,log(.0049),-log(.0049)/20),rnorm(n.row,log(.018),-log(.018)/20), rnorm(n.row,log(0.049478004),-log(0.049478004)/20), rnorm(n.row,log(0.001342105),-log(0.001342105)/20)  )) 
+
+
+#colnames(off.values2)<- c("silvia","patricia","antonio","francisco", "angel","maestra", "policia","abogado","medico", "hijo","fallecido","casado","discapac", "empleoprovincial", "preso")
+#colnames(119:143)
+
+#offset2 <- stack(off.values2[,1:15])[,1]
+id<- rep(1:n.row,n.cat)
+category <- rep(1:n.cat,each=n.row)
+
+
+N <- length(howmany$values)
+C <- max(category)
+G <- max(id)
+
+
+##
+## Personal Network
+##
+
+net.lmer <-glmer.nb(howmany$values ~ 1 + (1|category) + (1|id), nAGQ=0)
+a.personal<- coef(net.lmer)
+net.personal.lmer <- a.personal[[1]][,1]
+
+net.personal.lmer <- exp(net.personal.lmer)/.0064 
+
+## why .0064
+
+plot(density(net.personal.lmer),xlim=range(0:1200))
+
+##
+## Group Network
+##
+
+n.cat= ncol(data1[,84:95])
+n.row= nrow(data1)
+
+howmany<- stack(data1[,84:95])
+howmany$values<-as.integer(howmany[,1])
+#howmany.ini<-howmany
+#howmany$values[howmany$values==99]<- NA
+#howmany$values[howmany$values>30]<- 30
+#howmany.ini$values[howmany.ini$values<2]<- NA
+#howmany.ini$values[howmany.ini$values==99]<- 1
+#howmany.ini$values[howmany.ini$values>1]<- NA
+
+offset2=rep(net.personal.lmer,n.cat)
+id<- rep(1:n.row,n.cat)
+category <- rep(1:n.cat,each=n.row)
+
+N <- length(howmany$values)
+C <- max(category)
+G <- max(id)
+
+net.lmer2<-glmer.nb(howmany$values~ 1 + offset(log(offset2)) + (1|category) + (1|id), nAGQ=0)
+
+a.final<- ranef(net.lmer2)
+#a.sd <- se.ranef(net.lmer2)
+net.cat.lmer<-a.final[[1]][,1]
+net.greg.lmer<-a.final[[2]][,1]
+
+
+# This here: where does this numbers come from. 
+group<- exp(coef(net.lmer2)[[2]][1]+3.6)^1.8
+
+
+
+rownames(group)<- c("EmpleadoMunicipal", "EmpleadoProvincial", "TrabajoSocialVilla", "TrabajoSocialIglesia", "Militante", "CandidatoMunicipal", "CandidatoDiputado", "Jueces","CrimenViolento","CrimenSexual", "VictimaMotochorro","Preso")
+
+group*40000000
+
+##
+## Full Network
+##
+
+ab <- vector("list",n.cat)
+residuals <- vector("list",n.cat)
+
+for (i in 1:n.cat){
+  ab[[i]]<- exp(net.cat.lmer[i]+net.greg.lmer[])
+} 
+
+ab2<- data.frame(cbind(ab[[1]], ab[[2]], ab[[3]], ab[[4]], ab[[5]], ab[[6]], ab[[7]], ab[[8]], ab[[9]], ab[[10]], ab[[11]], ab[[12]]))
+
+colnames(ab2)<- c("EmpleadoMunicipal", "EmpleadoProvincial", "TrabajoSocialVilla", "TrabajoSocialIglesia", "Militante", "CandidatoMunicipal", "CandidatoDiputado", "Jueces","CrimenViolento","CrimenSexual", "VictimaMotochorro","Preso")
+
+tab<- stack(ab2[,1:n.cat])
+residual<- sqrt(howmany$values)-sqrt(tab$values)
+#residual<- log(howmany$values+1)-log(tab$values+1)
+
+resid.mat <- matrix(residual,G,C)
+
+colnames(resid.mat)<- c("EmpleadoMunicipal", "EmpleadoProvincial", 
+                        "TrabajoSocialVilla", "TrabajoSocialIglesia",
+                        "Militante", "CandidatoMunicipal", "CandidatoDiputado", 
+                        "Jueces","CrimenViolento","CrimenSexual", 
+                        "VictimaMotochorro","Preso")
+
+network.matrix<-cor(resid.mat,use="complete.obs")
+
+
+##
+## Correlation Plots
+##
+
+#Alternativa Color
+#corRaw <- cor(1-network.matrix)
+#library(spatstat) # "im" function 
+#plot(im(corRaw[nrow(corRaw):1,]), main="Correlation Matrix Map")
+
+#Agnes Cluster
+library(cluster)
+dissimilarity <- 1 - network.matrix
+distance <- as.dist(dissimilarity)
+windows()
+plot(agnes(distance))
+windows()
+corrplot(network.matrix, cex.var=.6,n.col.legend=8)
+
+new.data<- data.frame(data1,resid.mat, personalNet=net.personal.lmer)
+write.csv(new.data,"Master_conResiduales.csv")
+
+
+
+
+#######################################################################################
+##
+## All networks with no "size" estimated
+##
+#######################################################################################
+
+
+
+##
+## Group Network
+##
+
+n.cat= ncol(data1[,119:143])
+n.row= nrow(data1)
+
+howmany<- stack(data1[,119:143])
+howmany$values<-as.integer(howmany[,1])
+
+id<- rep(1:n.row,n.cat)
+category <- rep(1:n.cat,each=n.row)
+
+N <- length(howmany$values)
+C <- max(category)
+G <- max(id)
+
+net.lmer.all<-glmer.nb(howmany$values~ 1 + (1|category) + (1|id))
+net.lmer.all<-glmer.nb(howmany$values~ 1 + (1|category) + (1|id), nAGQ=0)
+
+a.final.all<- ranef(net.lmer.all)
+#a.sd.all <- se.ranef(net.lmer.all)
+net.cat.lmer.all<-a.final.all[[2]][,1]
+net.greg.lmer.all<-a.final.all[[1]][,1]
+
+group<- exp(coef(net.lmer.all)[[2]][1])
+rownames(group)<- c("silvia","patricia","antonio","francisco", "angel","maestra", "policia","abogado","medico", "hijo","fallecido","casado","discapac", "EmpleadoMunicipal", "EmpleadoProvincial", "TrabajoSocialVilla", "TrabajoSocialIglesia", "Militante", "CandidatoMunicipal", "CandidatoDiputado", "Jueces","CrimenViolento","CrimenSexual", "VictimaMotochorro","Preso")
+
+group*40000000
+
+##
+## Full Network
+##
+
+ab <- vector("list",n.cat)
+residuals <- vector("list",n.cat)
+
+for (i in 1:n.cat){
+  ab[[i]]<- exp(fixef(net.lmer.all)[[1]]+net.cat.lmer.all[i]+net.greg.lmer.all)
+  #predict.cat<- exp(fixef(net.lmer.all)+net.cat.lmer+net.greg.lmer)
+} 
+
+
+ab2<- data.frame(ab[[1]], ab[[2]], ab[[3]], ab[[4]], ab[[5]], ab[[6]], ab[[7]], ab[[8]], ab[[9]], ab[[10]], ab[[11]], ab[[12]], ab[[13]], ab[[14]], ab[[15]], ab[[16]], ab[[17]], ab[[18]], ab[[19]], ab[[20]], ab[[21]], ab[[22]], ab[[23]], ab[[24]], ab[[25]])
+
+colnames(ab2)<- c("silvia","patricia","antonio","francisco", "angel","maestra", "policia","abogado","medico", "hijo","fallecido","casado","discapac", "EmpleadoMunicipal", "EmpleadoProvincial", "TrabajoSocialVilla", "TrabajoSocialIglesia", "Militante", "CandidatoMunicipal", "CandidatoDiputado", "Jueces","CrimenViolento","CrimenSexual", "VictimaMotochorro","Preso")
+
+tab<- stack(ab2[,1:n.cat])
+residual<- sqrt(howmany$values)-sqrt(tab$values)
+
+resid.mat <- matrix(residual,G,C)
+
+colnames(resid.mat)<- c("silvia","patricia","antonio","francisco", "angel","maestra", "policia","abogado","medico", "hijo","fallecido","casado","discapac", "EmpleadoMunicipal", "EmpleadoProvincial", "TrabajoSocialVilla", "TrabajoSocialIglesia", "Militante", "CandidatoMunicipal", "CandidatoDiputado", "Jueces","CrimenViolento","CrimenSexual", "VictimaMotochorro","Preso")
+
+network.matrix<-cor(resid.mat,use="complete.obs")
+
+
+##
+## Correlation Plots
+##
+
+#Alternativa Color
+#corRaw <- cor(1-network.matrix)
+#library(spatstat) # "im" function 
+#plot(im(corRaw[nrow(corRaw):1,]), main="Correlation Matrix Map")
+
+#Agnes Cluster
+library(cluster)
+dissimilarity <- 1 - network.matrix
+distance <- as.dist(dissimilarity)
+windows()
+plot(agnes(distance))
+windows()
+corrplot(network.matrix, cex.var=.6,n.col.legend=8)
+
+new.data<- data.frame(data1,resid.mat, personalNet=net.greg.lmer.all)
+write.csv(new.data,"Master_conResiduales-FINAL.csv")
+
