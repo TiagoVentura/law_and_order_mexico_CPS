@@ -263,14 +263,14 @@ ggcorrplot(
   ggtheme = ggplot2::theme_minimal(),
   colors = c("#6D9EC1", "white", "tomato2")) 
 
-ggsave(filename=here("output", "correlation_matrix.png") ,
+ggsave(filename=here("output", "sif_correlation_matrix.png") ,
        width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 # dendogram
 library(ggdendro)
 hc <- hclust(distance, "ave")
 ggdendrogram(hc, xlab="")
-png(filename=here("output", "fig1_sif.png"))
+png(filename=here("output", "sif_fig1_sif.png"))
 plot(hc, xlab="")
 dev.off()
 
@@ -509,7 +509,7 @@ new_names = c("(Intercept)" = "Intercept",
               "fear_av"    =  "Fear of Crime",  
               "trust_police" = "Trust in the Police", 
               "as.numeric(issue_security)" = "Security Top Priority")
-
+library(stargazer)
 stargazer(models$model[[3]], models$model[[1]], models$model[[6]],models$model[[4]], 
           intercept.bottom = FALSE, 
           dep.var.labels.include = FALSE,
@@ -522,6 +522,6 @@ stargazer(models$model[[3]], models$model[[1]], models$model[[6]],models$model[[
           model.numbers = FALSE, 
           title="Regression Estimates: Correlates of Contextual and Individual Victimization", 
           label="reg_net", 
-          out=here("output", "table_1_sif.tex"))
+          out=here("output", "sif_table_1_sif.tex"))
 
 

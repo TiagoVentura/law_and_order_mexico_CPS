@@ -55,7 +55,6 @@ conjoint_data <- conjoint_data %>%
   mutate_at(vars(crime_victimization, police_victimization), ~
               fct_recode(.x,!!!list_vict))
 
-table(conjoint_data$crime_victimization)
 
 # Preferences for Law and Order
 list_lo_invert <- list("0"="5",
@@ -190,7 +189,7 @@ ggplot(res_vict_color, aes(y=estimate, x=term,
   coord_flip() + 
   theme(axis.text.y=element_text(size=16,hjust=0))
 
-ggsave(filename=here("output", "fig15.png") ,
+ggsave(filename=here("output", "sif_fig12.png") ,
                width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 
@@ -238,7 +237,7 @@ ggplot(res_vict,
   theme(axis.text.x =  element_text(size=12))
 
 
-ggsave(filename=here("output", "fig6a.png") ,
+ggsave(filename=here("output", "sif_fig6a.png") ,
          width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 
@@ -281,8 +280,8 @@ ggplot(res_pol_color, aes(y=estimate, x=term,
   coord_flip() + 
   theme(axis.text.y=element_text(size=16,hjust=0))
 
-#ggsave(filename=here("output", "fig16.png") ,
-#        width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+ggsave(filename=here("output", "sif_fig13.png") ,
+       width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 # Marginal Effects
 
@@ -333,8 +332,8 @@ ggplot(res_vict,
   theme(axis.text.x =  element_text(size=12))
 
 
-ggsave(filename=here("output", "fig6b.png") ,
-        width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+ggsave(filename=here("output", "sif_fig6b.png") ,
+         width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 
 # Results Network Measures of Crime ---------------------------------------------------------
@@ -372,10 +371,6 @@ mef_fo <- conjoint_data %>%
               fs + nvc*fo, 
             data=., clusters=responseid)
 
-
-# Marginal Effects
-mef_fs %>% tidy() %>% pull(term)
-mef_fo %>% tidy() %>% pull(term)
 
 # Get names: Constitutive Terms
 list_ct_fs <- list("fsEducation to Youth", "fsBetter Police/Security Cameras",
@@ -514,8 +509,8 @@ ggplot(mef_fs,
   coord_flip()
 
 
-#ggsave(filename=here("output", "fig3.png") ,
-#       width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+ggsave(filename=here("output", "sif_fig3.png") ,
+       width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 
 library(extrafont)
@@ -546,8 +541,8 @@ ggplot(mef_fo,
   coord_flip()
 
 
-#ggsave(filename=here("output","fig4.png") ,
-#       width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+ggsave(filename=here("output","sif_fig4.png") ,
+       width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 
 # Results using Network Measures for Police Violence ----------------------------------------------------
@@ -624,8 +619,8 @@ ggplot(mef_fs,
        caption="Baseline Condition: Candidate Proposing Victims Oriented Policies ") +
   facet_wrap(~treatment, ncol=2) 
 
-# ggsave(filename=here("output", "fig2a.png") ,
-#         width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+ggsave(filename=here("output", "sif_fig2a.png") ,
+         width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 
 ggplot(mef_fo, 
@@ -640,8 +635,8 @@ ggplot(mef_fo,
        caption="Baseline Condition: Candidate Proposing Victims Oriented Policies ") +
   facet_wrap(~treatment, ncol=2) 
 
-# ggsave(filename=here("output", "fig2b.png") ,
-#          width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+ggsave(filename=here("output", "sif_fig2b.png") ,
+          width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 # Models with Het for Fear of Crime -----------------------------------------------------------
 mef_fs <- conjoint_data %>% 
@@ -709,8 +704,8 @@ ggplot(mef_fs,
               Baseline Condition: Candidate Proposing Victims Oriented Policies") +
   facet_wrap(~treatment, ncol=2) 
 
-ggsave(filename=here("output", "fig10a.png") ,
-        width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+ggsave(filename=here("output", "sif_fig10a.png") ,
+         width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 ggplot(mef_fo, 
        aes(y=delta_1, ymax=upper_bound, ymin=lower_bound, x=moderator)) +
@@ -725,8 +720,8 @@ ggplot(mef_fo,
        Baseline Condition: Public Employee.") +
   facet_wrap(~treatment, ncol=2) 
 
-ggsave(filename=here("output", "fig10b.png") ,
-        width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+ggsave(filename=here("output", "sif_fig10b.png") ,
+         width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 # Het for Law and Order Preferences -----------------------------------------------------------
 
@@ -756,7 +751,6 @@ models <- models %>%
   mutate(model = list(lm(formula, data = data))) 
 
 # Get names: Constitutive Terms
-models$model[[3]] %>% tidy() %>% pull(term)
 
 list_ct_fs <- list("fsEducation to Youth", "fsBetter Police/Security Cameras",
                    "fsDeath Penalty", "fsPolice Militarization")
@@ -825,8 +819,8 @@ ggplot(mef_fs,
   facet_wrap(~treatment, ncol=2) 
 
 
-ggsave(filename=here("output", "fig11a.png") ,
-        width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+ggsave(filename=here("output", "sif_fig11a.png") ,
+         width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 
 ggplot(mef_fo, 
@@ -842,8 +836,8 @@ ggplot(mef_fo,
   facet_wrap(~treatment, ncol=2) 
 
 
-ggsave(filename=here("output", "fig11b.png") ,
-        width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+ggsave(filename=here("output", "sif_fig11b.png") ,
+         width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 
 # Het effect by Trust In the Police -----------------------------------------------------
@@ -865,10 +859,6 @@ models <- tibble::tribble(
 models <- models %>% 
   rowwise(model_name) %>% 
   mutate(model = list(lm(formula, data = data))) 
-
-summary(models$model[[1]])
-summary(models$model[[2]])
-summary(models$model[[3]])
 
 # Get names: Constitutive Terms
 
@@ -938,8 +928,8 @@ ggplot(mef_fs,
        caption="Baseline Condition: Candidate Proposing Victims Oriented Policies ") +
   facet_wrap(~treatment, ncol=2) 
 
-ggsave(filename=here("output", "fig9a.png") ,
-        width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+ggsave(filename=here("output", "sif_fig9a.png") ,
+         width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 ggplot(mef_fo, 
        aes(y=delta_1, ymax=upper_bound, ymin=lower_bound, x=moderator)) +
@@ -953,8 +943,8 @@ ggplot(mef_fo,
        caption="Baseline Condition: Public Employee ") +
   facet_wrap(~treatment, ncol=2) 
 
-ggsave(filename=here("output", "fig9b.png") ,
-        width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+ggsave(filename=here("output", "sif_fig9b.png") ,
+         width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 
 # Het by Income ------------------------------------------------------------------
@@ -974,7 +964,6 @@ models <- models %>%
 
 
 # Get names: Constitutive Terms
-models$model[[1]] %>% tidy() %>% pull(term)
 
 list_ct_fs <- list("fsEducation to Youth", "fsBetter Police/Security Cameras",
                    "fsDeath Penalty", "fsPolice Militarization")
@@ -1025,8 +1014,8 @@ ggplot(mef_fs,
        caption="Baseline Condition: Candidate Proposing Victims Oriented Policies ") +
   facet_wrap(~treatment, ncol=2) 
 
-# ggsave(filename=here("output", "fig8a.png") ,
-#        width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+ggsave(filename=here("output", "sif_fig8a.png") ,
+        width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 ggplot(mef_fo, 
        aes(y=delta_1, ymax=upper_bound, ymin=lower_bound, x=moderator)) +
@@ -1041,8 +1030,8 @@ ggplot(mef_fo,
   facet_wrap(~treatment, ncol=2) 
 
 
-ggsave(filename=here("output", "fig8b.png") ,
-        width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+ggsave(filename=here("output", "sif_fig8b.png") ,
+         width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 
 # Heterogenous effects by gender ------------------------------------------------------
@@ -1079,8 +1068,8 @@ ggplot(res_gender_color, aes(y=estimate, x=term,
   coord_flip() + 
   theme(axis.text.y=element_text(size=16,hjust=0))
 
-ggsave(filename=here("output", "fig7.png") ,
-      width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+ggsave(filename=here("output", "sif_fig7.png") ,
+       width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 
 # Analysis of Partisanship: appendix D ------------------------------------------------------------
@@ -1197,8 +1186,8 @@ ggplot(res_positive_r, aes(y=estimate, x=term_c,
   theme(axis.text.y=element_text(size=16)) 
 
 
-#ggsave(filename=here("output", "fig5a.png") ,
-#       width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+ggsave(filename=here("output", "sif_fig5a.png") ,
+       width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 # Negative Partisanship
 
@@ -1216,6 +1205,200 @@ ggplot(res_negative_r, aes(y=estimate, x=term_c,
   facet_grid(features~subsample, scales="free") +
   theme(axis.text.y=element_text(size=16,hjust=1))
 
-# ggsave(filename=here("output", "fig5b.png") ,
-#        width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+ggsave(filename=here("output", "sif_fig5b.png") ,
+        width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+
+
+# Robustness Checks -------------------------------------------------------
+
+# Model Candidates Ordering
+profile <- conjoint_data %>% 
+  group_by(candidate) %>% 
+  nest() %>% 
+  drop_na() %>%
+  mutate(model=map2(data, candidate, 
+                    ~ lm_robust(outcome_num~ feat_political_party + feat_gender + 
+                                  feat_security_proposal + feat_occupation,
+                                clusters=responseid,
+                                data=.x) %>%
+                      tidy_conjoint_model(model=., subsample=.y, 
+                                          features = features,
+                                          references=references, list_terms = list_terms))) %>% 
+  unnest(model) %>% select(-data)
+
+# Remove repeated
+profile_color <- profile %>% 
+  ungroup() %>% 
+  mutate(id_remove=ifelse(candidate=="cd_1"& (is.na(estimate) | estimate==0.0000), 1, 0)) %>%
+  filter(id_remove==0) %>%
+  mutate(candidate=str_replace(candidate, "cd", "Profile"))
+
+ggplot(profile_color, aes(y=estimate, x=term, 
+                           ymin=up, ymax=lb, fill=candidate)) +
+  geom_pointrange(size=1, color="grey5",
+                  position=position_dodge(width = .6), alpha=.8, shape=21) +
+  labs(x="", y="Point Estimates", 
+       title = "") +
+  geom_hline(yintercept = 0, linetype="dashed", color="darkred") + 
+  scale_fill_manual(values = c("white", "black"), name="") +
+  coord_flip() + 
+  theme(axis.text.y=element_text(size=14,hjust=0, face="bold"), 
+        strip.text = element_text(size=16),
+        panel.background = element_rect(fill = "gray95", color = NA), 
+        strip.background = element_rect(fill="white"), 
+        panel.grid.major = element_line(color = "white")) +
+  geom_vline(xintercept = 14, linetype="dashed", color="black",alpha = .5) + #project
+  geom_vline(xintercept = 18, linetype="dashed",  color="black",alpha = .5) +
+  geom_vline(xintercept = 24, linetype="dashed", color="black", alpha = .5) +
+  geom_vline(xintercept = 7, linetype="dashed", color="black",alpha = .5) #gov  
+
+
+ggsave(filename=here("output", "sif_fig15.png") ,
+        width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+
+
+# Model task
+profile <- conjoint_data %>% 
+  group_by(task) %>% 
+  nest() %>% 
+  drop_na() %>%
+  mutate(model=map2(data, task, 
+                    ~ lm_robust(outcome_num~ feat_political_party + feat_gender + 
+                                  feat_security_proposal + feat_occupation,
+                                clusters=responseid,
+                                data=.x) %>%
+                      tidy_conjoint_model(model=., subsample=.y, 
+                                          features = features,
+                                          references=references, list_terms = list_terms))) %>% 
+  unnest(model) %>% select(-data)
+
+# Remove repeated
+profile_color <- profile %>% 
+  ungroup() %>% 
+  mutate(id_remove=ifelse(task=="choice_1"& (is.na(estimate) | estimate==0.0000), 1, 0)) %>%
+  filter(id_remove==0) %>%
+  mutate(candidate=str_replace(task, "choice", "Task"))
+
+ggplot(profile_color, aes(y=estimate, x=term, 
+                          ymin=up, ymax=lb, fill=candidate)) +
+  geom_pointrange(size=1, color="grey5",
+                  position=position_dodge(width = .6), alpha=.8, shape=21) +
+  labs(x="", y="Point Estimates", 
+       title = "") +
+  geom_hline(yintercept = 0, linetype="dashed", color="darkred") + 
+  scale_fill_manual(values = c("white", "black"), name="") +
+  coord_flip() + 
+  theme(axis.text.y=element_text(size=14,hjust=0, face="bold"), 
+        strip.text = element_text(size=16),
+        panel.background = element_rect(fill = "gray95", color = NA), 
+        strip.background = element_rect(fill="white"), 
+        panel.grid.major = element_line(color = "white")) +
+  geom_vline(xintercept = 14, linetype="dashed", color="black",alpha = .5) + #project
+  geom_vline(xintercept = 18, linetype="dashed",  color="black",alpha = .5) +
+  geom_vline(xintercept = 24, linetype="dashed", color="black", alpha = .5) +
+  geom_vline(xintercept = 7, linetype="dashed", color="black",alpha = .5) #gov  
+
+
+ggsave(filename=here("output", "sif_fig14.png") ,
+       width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+
+# tables 3 and 4  -------------------------------------------------------
+
+# Table 3
+
+# modeling heterogenous effects
+mod_cv <- conjoint_data %>% 
+  mutate(nvc=res_network_victim_crime) %>%
+  lm_robust(outcome_num ~ feat_political_party + feat_gender + 
+              nvc*fs + fo, 
+            data=., clusters = responseid)
+
+
+mod_pv <- conjoint_data %>% 
+  mutate(nvc=res_network_police_violence) %>%
+  lm_robust(outcome_num ~ feat_political_party + feat_gender + 
+              nvc*fs + fo, 
+            data=., 
+            clusters=responseid)
+
+
+# Stargazer
+library(stargazer)
+library(modelsummary)
+names_mod=names(coef(mod_cv))
+names_modpv=names(coef(mod_pv))
+new_names = c("(Intercept)" = "Intercept", 
+              "feat_political_partyPRI" = "PRI",             
+              "feat_political_partyMORENA" = "MORENA",
+              "feat_political_partyPAN"   ="PAN",          
+              "feat_genderMale"  = "Male",
+              "nvc" = "Network Residuals (NR)",                                
+              "fsEducation to Youth" =   "Education to Youth",
+              "fsBetter Police/Security Cameras"    = "Better Police/Security Cameras",
+              "fsDeath Penalty"   = "Death Penalty",           
+              "fsPolice Militarization" = "Police Militarization",             
+              "foLeader Autodefensas"  = "Leader Autodefensas",       
+              "foChief Local Police"   =    "Chief Local Police",          
+              "foHuman-Rights Activist" = "Human-Rights Activist",        
+              "foOwner Private  Security Firm" = "Owner Private  Security Firm",      
+              "nvc:fsEducation to Youth"  = "NR x Education to Youth",        
+              "nvc:fsBetter Police/Security Cameras" = "NR x Better Police/Security Cameras",
+              "nvc:fsDeath Penalty" = "NR x Death Penalty",               
+              "nvc:fsPolice Militarization" = "NR x Police Militarization")
+
+library(modelsummary)
+modelsummary(list("Crime Victimization"=mod_cv, 
+                  "Police Victimization"=mod_pv), 
+             fmt = 3,
+             output = here("output", "sif_table3.tex"),
+             stars = TRUE, 
+             coef_map = new_names)
+
+# Table 4
+
+# modeling heterogenous effects
+mod_cv <- conjoint_data %>% 
+  mutate(nvc=res_network_victim_crime) %>%
+  lm_robust(outcome_num ~ feat_political_party + feat_gender + 
+              fs + nvc*fo, 
+            data=., clusters = responseid)
+
+
+mod_pv <- conjoint_data %>% 
+  mutate(nvc=res_network_police_violence) %>%
+  lm_robust(outcome_num ~ feat_political_party + feat_gender + 
+              fs + nvc*fo, 
+            data=., 
+            clusters=responseid)
+
+
+# Stargazer
+names_mod=names(coef(mod_cv))
+names_modpv=names(coef(mod_pv))
+new_names = c("(Intercept)" = "Intercept", 
+              "feat_political_partyPRI" = "PRI",             
+              "feat_political_partyMORENA" = "MORENA",
+              "feat_political_partyPAN"   ="PAN",          
+              "feat_genderMale"  = "Male",
+              "nvc" = "Network Residuals (NR)",                                
+              "fsEducation to Youth" =   "Education to Youth",
+              "fsBetter Police/Security Cameras"    = "Better Police/Security Cameras",
+              "fsDeath Penalty"   = "Death Penalty",           
+              "fsPolice Militarization" = "Police Militarization",             
+              "foLeader Autodefensas"  = "Leader Autodefensas",       
+              "foChief Local Police"   =    "Chief Local Police",          
+              "foHuman-Rights Activist" = "Human-Rights Activist",        
+              "foOwner Private  Security Firm" = "Owner Private  Security Firm",      
+              "nvc:foLeader Autodefensas"  = "NR x Leader Autodefensas",        
+              "nvc:foChief Local Police" = "NR x Chief Local Police",               
+              "nvc:foOwner Private Security Firm" = "NR x Owner Private  Security Firm", 
+              "nvc:foHuman-Rights Activist" = "NR x Human-Rights Activist")
+
+library(modelsummary)
+modelsummary(list("Crime Victimization"=mod_cv, 
+                  "Police Victimization"=mod_pv), 
+             fmt = 3,
+             output = here("output", "sif_table4.tex"),
+             stars = TRUE, 
+             coef_map = new_names)
 

@@ -155,7 +155,7 @@ ggplot(res, aes(y=estimate, x=term,
 
 
 ggsave(filename=here("output", "fig1.png") ,
-        width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+         width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 # Figure 2A:  ---------------------------------------------------------
 # remove nas from raw network data
@@ -170,7 +170,7 @@ load(here("data", "network_results.Rdata"))
 crime_wide <- crime %>% 
   pivot_wider(names_from=group, 
               values_from = c(yhat, res, values))
-crime_wide$res_network_police_violence
+
 # merge with network
 conjoint_data <- left_join(conjoint_data, crime_wide)
 
@@ -245,7 +245,7 @@ ggplot(mef_fs,
 
  
 ggsave(filename=here("output", "fig2a.png") ,
-        width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+         width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 
 ggplot(mef_fo, 
@@ -260,7 +260,7 @@ ggplot(mef_fo,
        caption="Baseline Condition: Candidate Proposing Victims Oriented Policies ") +
   facet_wrap(~treatment, ncol=2) 
  
- ggsave(filename=here("output", "fig2b.png") ,
+ggsave(filename=here("output", "fig2b.png") ,
         width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 
@@ -355,7 +355,7 @@ ggplot(data=res_int_r %>% filter(features=="Security Proposal"),
         strip.text = element_text(size=13))
 
 ggsave(filename=here("output", "fig3a.png") ,
-       width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+        width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 # Interactive Effects By Features -----------------------------------------
 
@@ -406,7 +406,7 @@ ggplot(data=res_int_r %>% filter(features=="Security Proposal"),
 
 
 ggsave(filename=here("output", "fig3b.png") ,
-       width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
+        width = 12, height = 8, units = "in", pointsize = 12, bg = "white")
 
 # sesssion
 sessionInfo()
